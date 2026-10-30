@@ -1,0 +1,150 @@
+{% extends 'base.html' %}{% block crumb %}Usuarios{% endblock %}{% block content
+%}
+<div class="page-header">
+  <h2>Usuarios y roles</h2>
+  <button
+    class="btn btn-primary"
+    data-bs-toggle="modal"
+    data-bs-target="#nuevoUsuario"
+  >
+    + Nuevo usuario
+  </button>
+</div>
+<div class="panel table-responsive">
+  <table class="table">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Nombre</th>
+        <th>Correo</th>
+        <th>Rol</th>
+        <th>Estado</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for u in data %}
+      <tr>
+        <td>{{u.id_usuario}}</td>
+        <td>{{u.nombre}}</td>
+        <td>{{u.correo}}</td>
+        <td>
+          <form method="post" action="{{ url_for('usuario_rol', uid=u.id_usuario) }}" class="d-flex gap-2">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <select name="id_rol" class="form-select form-select-sm" aria-label="Rol de {{ u.nombre }}">
+              {% for r in roles %}
+              <option value="{{ r.id_rol }}" {% if r.nombre == u.rol %}selected{% endif %}>{{ r.nombre }}</option>
+              {% endfor %}
+            </select>
+            <button type="submit" class="btn btn-sm btn-outline-primary">Cambiar rol</button>
+          </form>
+        </td>
+        <td>
+          <span class="badge {{ 'bg-success' if u.estado else 'bg-secondary' }}">
+            {{ 'Activo' if u.estado else 'Inactivo' }}
+          </span>
+        </td>
+        <td>
+          <div class="d-flex flex-wrap gap-2">
+          <form
+            method="post"
+            action="{{url_for('usuario_estado',uid=u.id_usuario)}}"
+            {% if u.estado %}onsubmit="return confirm('¿Deseas desactivar este usuario? Ya no podrá iniciar sesión.');"{% endif %}
+          >
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="estado" value="{{ 'desactivar' if u.estado else 'activar' }}">
+            {% set cuenta_propia = u.id_usuario|string == current_user.id|string %}
+            <span {% if cuenta_propia %}title="No puedes desactivar tu propia cuenta."
+                  {% elif u.estado and not u.puede_desactivar %}title="{{ u.motivo_desactivacion }}"{% endif %}>
+              <button type="submit" class="btn btn-sm btn-outline-secondary"
+                      {% if cuenta_propia or (u.estado and not u.puede_desactivar) %}disabled{% endif %}>
+                {{ 'Desactivar' if u.estado else 'Reactivar' }}
+              </button>
+            </span>
+          </form>
+          <form method="post" action="{{ url_for('usuario_eliminar', uid=u.id_usuario) }}"
+                onsubmit="return confirm('¿Deseas eliminar definitivamente este usuario? Esta acción no se puede deshacer.');">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <span {% if cuenta_propia %}title="No puedes eliminar tu propia cuenta."
+                  {% elif not u.puede_eliminar %}title="{{ u.motivo_eliminacion }}"{% endif %}>
+              <button type="submit" class="btn btn-sm btn-outline-danger"
+                      {% if cuenta_propia or not u.puede_eliminar %}disabled{% endif %}>Eliminar</button>
+            </span>
+          </form>
+          </div>
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="6">No hay usuarios.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+<div class="modal fade" id="nuevoUsuario">
+  <div class="modal-dialog">
+    <form
+      method="post"
+      action="{{url_for('usuario_crear')}}"
+      class="modal-content"
+    >
+      <input type="hidden" name="csrf_token" value="{{csrf_token()}}" />
+      <div class="modal-header">
+        <h5>Nuevo usuario</h5>
+        <button
+          class="btn-close"
+          type="button"
+          data-bs-dismiss="modal"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <label class="form-label">Nombre</label
+        ><input name="nombre" class="form-control mb-3" pattern="[A-Za-zÁÉÍÓÚÜÑáéíóúüñ]+( [A-Za-zÁÉÍÓÚÜÑáéíóúüñ]+)*" 
+                oninput="this.value = this.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚüÜñÑ ]/g, '')"
+                title="Solo letras y espacios" required 
+        /><label
+          class="form-label"
+          >Correo</label
+        ><input
+          name="correo"
+          type="email"
+          class="form-control mb-3"
+          required
+        /><label class="form-label">Rol</label
+        ><select name="id_rol" class="form-select mb-3">
+          {% for r in roles %}
+          <option value="{{r.id_rol}}">{{r.nombre}}</option>
+          {% endfor %}</select
+        ><label class="form-label">Contraseña (mínimo 12 caracteres)</label
+        ><input
+          type="password"
+          minlength="12"
+          name="password"
+          class="form-control"
+          required
+        />
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary">Crear usuario</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const nombreUsuario =
+        document.getElementById("nombre_usuario");
+
+    if (nombreUsuario) {
+        nombreUsuario.addEventListener("input", function () {
+            this.value = this.value.replace(
+                /[^a-zA-ZáéíóúÁÉÍÓÚüÜñÑ ]/g,
+                ""
+            );
+        });
+    }
+
+});
+</script>

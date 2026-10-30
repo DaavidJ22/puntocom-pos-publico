@@ -1,0 +1,72 @@
+{% extends 'base.html' %}{% block crumb %}Ventas{% endblock %}{% block content
+%}
+<div class="page-header">
+  <div>
+    <h2>Historial de ventas</h2>
+    {% if not puede('ventas.todas') %}<p>Se muestran únicamente las ventas realizadas por tu usuario.</p>{% endif %}
+  </div>
+  {% if puede('ventas.registrar') %}
+  <a href="{{url_for('pos')}}" class="btn btn-primary">+ Nueva venta</a>
+  {% endif %}
+</div>
+<div class="panel">
+  <form class="mb-3">
+    <div class="input-group">
+      <input
+        name="q"
+        class="form-control"
+        placeholder="Buscar por número de ticket"
+        value="{{request.args.get('q','')}}"
+      /><button class="btn btn-outline-primary">Buscar</button>
+    </div>
+  </form>
+  <div class="table-responsive">
+    <table class="table table-hover">
+      <thead>
+        <tr>
+          <th>Ticket</th>
+          <th>Fecha</th>
+          <th>Cliente</th>
+          <th>Cajero</th>
+          <th>Método</th>
+          <th>Total</th>
+          <th>Estado</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for v in data %}
+        <tr>
+          <td>{{v.numero_ticket}}</td>
+          <td>{{v.fecha_hora|fecha}}</td>
+          <td>{{v.nombre_razon_social}}</td>
+          <td>{{v.cajero}}</td>
+          <td>{{v.metodo_pago}}</td>
+          <td>{{v.total|q}}</td>
+          <td>{{v.estado}}</td>
+          <td>
+            <a
+              class="btn btn-sm btn-outline-primary"
+              href="{{url_for('ticket',vid=v.id_venta)}}"
+              >Ticket</a
+            >
+            {% if puede('ventas.anular') and v.estado == 'COMPLETADA' %}
+            <form method="post" action="{{ url_for('venta_anular', vid=v.id_venta) }}" class="d-flex gap-2 mt-2"
+                  onsubmit="return confirm('¿Anular esta venta? Se conservará su historial y se devolverán las unidades al inventario.');">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <input type="text" name="motivo" class="form-control form-control-sm" placeholder="Motivo de anulación" aria-label="Motivo de anulación de {{ v.numero_ticket }}" maxlength="255" required>
+              <button type="submit" class="btn btn-sm btn-outline-danger">Anular</button>
+            </form>
+            {% endif %}
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="8">No se encontraron ventas.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

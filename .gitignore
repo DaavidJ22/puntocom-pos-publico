@@ -1,0 +1,25 @@
+.env
+.env.*
+!.env.example
+venv/
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+*.log
+*.backup
+*.dump
+/documentacion/
+/Microsoft/
+/.local/
+node_modules/
+frontend/dist/
+.vercel/
+
+# Archivos privados y resultados generados
+*.pem
+*.key
+*.p12
+*.sqlite*
+*.sql.gz
+/docs/resultado_*.json

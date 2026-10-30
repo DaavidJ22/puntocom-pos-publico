@@ -1,0 +1,127 @@
+{% extends 'base.html' %}
+{% block crumb %}Reportes{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h2>Reportes de ventas</h2>
+        {% if not puede('ventas.todas') %}<p>El reporte y el archivo Excel incluyen solo tus propias ventas.</p>{% endif %}
+    </div>
+</div>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <h5>Filtrar ventas por fecha</h5>
+        <form method="GET"
+              action="{{ url_for('reportes') }}"
+              class="row g-3 align-items-end">
+            <div class="col-md-4">
+                <label for="inicio" class="form-label">Fecha inicial</label>
+                <input type="date" id="inicio" name="inicio" class="form-control"
+                       value="{{ desde }}" required>
+            </div>
+            <div class="col-md-4">
+                <label for="fin" class="form-label">Fecha final</label>
+                <input type="date" id="fin" name="fin" class="form-control"
+                       value="{{ hasta }}" required>
+            </div>
+            <div class="col-md-4 d-flex flex-wrap gap-2">
+                <button type="submit" class="btn btn-primary">Aplicar filtro</button>
+                <button type="button" onclick="window.print()"
+                        class="btn btn-outline-primary">Imprimir</button>
+                <button type="submit" formaction="{{ url_for('reporte_excel') }}"
+                        class="btn btn-success flex-grow-1">
+                    Descargar Excel
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="stats mb-4">
+    <div class="stat">
+        <small>Ventas en el período</small>
+        <strong>{{ resumen.cantidad }}</strong>
+    </div>
+    <div class="stat">
+        <small>Total vendido</small>
+        <strong>{{ resumen.total | q }}</strong>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-7">
+        <div class="panel">
+            <h5>Ventas por día</h5>
+            <div style="height: 320px;">
+                <canvas id="grafico"
+                        data-fechas='{{ dias | map(attribute="fecha") | map("string") | list | tojson | forceescape }}'
+                        data-totales='{{ dias | map(attribute="total") | map("float") | list | tojson | forceescape }}'>
+                </canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-5">
+        <div class="panel">
+            <h5>Productos más vendidos</h5>
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Producto</th>
+                            <th>Unidades</th>
+                            <th>Importe</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for p in productos %}
+                        <tr>
+                            <td>{{ p.nombre }}</td>
+                            <td>{{ p.cantidad }}</td>
+                            <td>{{ p.total | q }}</td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="3">Sin ventas.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(() => {
+    const canvas = document.getElementById('grafico');
+    if (!canvas || typeof Chart === 'undefined') return;
+
+    const fechas = JSON.parse(canvas.dataset.fechas || '[]');
+    const totales = JSON.parse(canvas.dataset.totales || '[]');
+
+    new Chart(canvas, {
+        type: 'line',
+        data: {
+            labels: fechas,
+            datasets: [{
+                label: 'Ventas Q',
+                data: totales,
+                borderColor: '#3267d6',
+                tension: 0.3,
+                fill: false
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: { beginAtZero: true }
+            }
+        }
+    });
+})();
+</script>
+{% endblock %}

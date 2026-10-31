@@ -152,6 +152,18 @@ class GestionTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             validar_datos_gestion("otro", {})
 
+    def test_telefono_cliente_y_proveedor_rechazan_entradas_invalidas(self):
+        for modulo, nombre in (("clientes", "nombre_razon_social"),
+                               ("proveedores", "razon_social")):
+            for telefono in ("abcdefgh", "5555abcd", "5555123", "555512345",
+                             "5555-1234", "+50255551234", "5555 1234",
+                             "１２３４５６７８", "١٢٣٤٥٦٧٨"):
+                with self.subTest(modulo=modulo, telefono=telefono):
+                    with self.assertRaisesRegex(ValueError, "exactamente 8"):
+                        validar_datos_gestion(modulo, {nombre: "Ana", "telefono": telefono})
+            resultado = validar_datos_gestion(modulo, {nombre: "Ana", "telefono": "01234567"})
+            self.assertEqual(resultado["telefono"], "01234567")
+
 
 class ValidadoresCompatiblesTest(unittest.TestCase):
     def test_nombre_y_campos_opcionales(self):

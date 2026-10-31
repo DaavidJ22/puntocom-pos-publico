@@ -7,6 +7,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import Chart from "chart.js/auto";
+import { constraintsFor, acceptsEdit } from "./validation";
 
 export const q = (n) =>
   "Q " +
@@ -85,7 +86,16 @@ export function Table({ columns, data = [], empty }) {
         </thead>
         <tbody>
           {data.map((row, i) => (
-            <tr key={row.id_evento || row.campo || row.id_venta || row.id_producto || row.id_usuario || i}>
+            <tr
+              key={
+                row.id_evento ||
+                row.campo ||
+                row.id_venta ||
+                row.id_producto ||
+                row.id_usuario ||
+                i
+              }
+            >
               {columns.map(([key, label, render]) => (
                 <td
                   key={key}
@@ -237,10 +247,16 @@ export function Field({
   value,
   onChange,
   min,
+  max,
   step,
+  minLength,
   maxLength,
+  pattern,
+  inputMode,
+  title,
   autoComplete,
 }) {
+  const rules = constraintsFor(name);
   return (
     <label className="field">
       <span>
@@ -265,15 +281,25 @@ export function Field({
       ) : (
         <input
           name={name}
-          type={type}
+          type={rules.type ?? type}
           required={required}
           value={value ?? ""}
-          onChange={onChange}
+          onChange={(e) => {
+            if (acceptsEdit(name, e.target.value)) onChange(e);
+          }}
           min={min}
+          max={max}
           step={step}
-          maxLength={maxLength}
-          autoComplete={autoComplete}
+          minLength={minLength ?? rules.minLength}
+          maxLength={maxLength ?? rules.maxLength}
+          pattern={pattern ?? rules.pattern}
+          inputMode={inputMode ?? rules.inputMode}
+          title={title ?? rules.title}
+          autoComplete={autoComplete ?? rules.autoComplete}
         />
+      )}
+      {name === "telefono" && (
+        <small>Opcional: 8 dígitos, sin espacios ni guiones.</small>
       )}
     </label>
   );

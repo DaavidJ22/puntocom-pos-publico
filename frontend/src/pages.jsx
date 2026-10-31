@@ -211,8 +211,17 @@ const configs = {
     permission: "productos.gestionar",
     create: "productos.gestionar",
     fields: [
-      textField("nombre", "Nombre", true),
-      textField("descripcion", "Descripción"),
+      {
+        ...textField("nombre", "Nombre", true),
+        maxLength: 100,
+        pattern: "[A-Za-zÁÉÍÓÚÜÑáéíóúüñ]+( [A-Za-zÁÉÍÓÚÜÑáéíóúüñ]+)*",
+        title: "Utiliza letras y un espacio entre palabras.",
+      },
+      {
+        ...textField("descripcion", "Descripción"),
+        pattern: "[A-Za-zÁÉÍÓÚÜÑáéíóúüñ]+( [A-Za-zÁÉÍÓÚÜÑáéíóúüñ]+)*",
+        title: "Utiliza letras y un espacio entre palabras.",
+      },
     ],
     columns: [
       ["nombre", "Nombre"],
@@ -227,8 +236,13 @@ const configs = {
     permission: "clientes.gestionar",
     create: "clientes.crear",
     fields: [
-      textField("nombre_razon_social", "Nombre o razón social", true),
-      textField("nit_dpi", "NIT o DPI"),
+      {
+        ...textField("nombre_razon_social", "Nombre o razón social", true),
+        maxLength: 150,
+        pattern: "[A-Za-zÁÉÍÓÚÜÑáéíóúüñ]+( [A-Za-zÁÉÍÓÚÜÑáéíóúüñ]+)*",
+        title: "Utiliza letras y un espacio entre palabras.",
+      },
+      { ...textField("nit_dpi", "NIT o DPI"), maxLength: 30 },
       textField("telefono", "Teléfono de 8 dígitos"),
       textField("correo", "Correo electrónico", false, "email"),
       textField("direccion_fiscal", "Dirección fiscal"),
@@ -248,9 +262,14 @@ const configs = {
     permission: "proveedores.gestionar",
     create: "proveedores.gestionar",
     fields: [
-      textField("razon_social", "Razón social", true),
-      textField("nit", "NIT"),
-      textField("contacto", "Contacto"),
+      { ...textField("razon_social", "Razón social", true), maxLength: 150 },
+      { ...textField("nit", "NIT"), maxLength: 30 },
+      {
+        ...textField("contacto", "Contacto"),
+        maxLength: 100,
+        pattern: "[A-Za-zÁÉÍÓÚÜÑáéíóúüñ]+( [A-Za-zÁÉÍÓÚÜÑáéíóúüñ]+)*",
+        title: "Utiliza letras y un espacio entre palabras.",
+      },
       textField("telefono", "Teléfono de 8 dígitos"),
       textField("correo", "Correo electrónico", false, "email"),
       textField("direccion", "Dirección"),
@@ -270,7 +289,12 @@ const configs = {
     permission: "usuarios.gestionar",
     create: "usuarios.gestionar",
     fields: [
-      textField("nombre", "Nombre", true),
+      {
+        ...textField("nombre", "Nombre", true),
+        maxLength: 100,
+        pattern: "[A-Za-zÁÉÍÓÚÜÑáéíóúüñ]+( [A-Za-zÁÉÍÓÚÜÑáéíóúüñ]+)*",
+        title: "Utiliza letras y un espacio entre palabras.",
+      },
       textField("correo", "Correo", true, "email"),
       textField(
         "password",
@@ -746,7 +770,12 @@ export function POS({ can }) {
               <option>CRÉDITO</option>
             </select>
           </label>
-          {method === "CRÉDITO" && <p className="info-banner">La venta quedará pendiente de cobro. Registra sus abonos en Pagos y saldos.</p>}
+          {method === "CRÉDITO" && (
+            <p className="info-banner">
+              La venta quedará pendiente de cobro. Registra sus abonos en Pagos
+              y saldos.
+            </p>
+          )}
           {method === "EFECTIVO" && (
             <label className="field">
               <span>Monto recibido Q</span>
@@ -904,7 +933,12 @@ export function Ticket() {
             <strong>{q(data.venta.total)}</strong>
           </div>
           <p>{data.venta.metodo_pago} · ¡Gracias por tu compra!</p>
-          {data.venta.metodo_pago === "CRÉDITO" && <p>Documento a crédito. Consulta el saldo actualizado y sus recibos en Pagos y saldos.</p>}
+          {data.venta.metodo_pago === "CRÉDITO" && (
+            <p>
+              Documento a crédito. Consulta el saldo actualizado y sus recibos
+              en Pagos y saldos.
+            </p>
+          )}
         </div>
       )}
     </>
